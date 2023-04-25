@@ -1,24 +1,29 @@
 const express = require("express");
 const chalk = require("chalk");
 const path = require("path");
-const { addNote, getNotes, removeNote } = require("./notes.controller");
+const {
+  addNote,
+  getNotes,
+  removeNote,
+  editNote,
+} = require("./notes.controller");
 
 const port = 3000;
-// const basePath = path.join(__dirname, "pages");
+
 const app = express();
 
 app.set("view engine", "ejs");
 app.set("views", "pages");
 
-app.use(express.static(path.resolve(__dirname, "public")));
+app.use(express.static(path.resolve(__dirname, "public"))); //подключение клиентского скрипта
 app.use(
   express.urlencoded({
     extended: true,
   })
-);
+); // отправка данных с сервера
+app.use(express.json()); // middleware для отправки на сервер данных в формате JSON
 
 app.get("/", async (req, res) => {
-  // res.sendFile(path.join(basePath, "index.html"));
   res.render("index", {
     title: "Express App",
     notes: await getNotes(),
@@ -27,9 +32,8 @@ app.get("/", async (req, res) => {
 });
 
 app.post("/", async (req, res) => {
-  // console.log(req.body);
   await addNote(req.body.title);
-  // res.sendFile(path.join(basePath, "index.html"));
+
   res.render("index", {
     title: "Express App",
     notes: await getNotes(),
@@ -38,8 +42,18 @@ app.post("/", async (req, res) => {
 });
 
 app.delete("/:id", async (req, res) => {
-  // console.log("id", req.params.id);
   await removeNote(req.params.id);
+
+  res.render("index", {
+    title: "Express App",
+    notes: await getNotes(),
+    created: false,
+  });
+});
+
+app.put("/:id", async (req, res) => {
+  await editNote(req.body);
+
   res.render("index", {
     title: "Express App",
     notes: await getNotes(),
